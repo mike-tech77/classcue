@@ -1,3 +1,5 @@
+import java.util.LinkedHashMap;
+import java.util.Set;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -6,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 public class Main {
 
@@ -54,9 +57,11 @@ public class Main {
 
         try {
             String[] days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
+            Map<String, List<TimetableSlot>> week = new LinkedHashMap<>();
             int total = 0;
             for (String day : days) {
                 List<TimetableSlot> mine = StudentFilter.filter(loadByDay(day), registered);
+                week.put(day, mine);
                 total = total + mine.size();
 
                 System.out.println("--- " + day + " ---");
@@ -68,6 +73,15 @@ public class Main {
                 }
             }
             System.out.println("Classes in my timetable: " + total);
+
+            // Student preferences (hard-coded for now; the web page will collect these)
+            System.out.println();
+            System.out.println("=== Study plan: 8 hours, evenings (17:00-22:00), Friday free ===");
+            List<String> plan = Planner.plan(week, 8, 17 * 60, 22 * 60,
+                    Set.of("Friday"), List.of("CE 273", "CE 277"));
+            for (String block : plan) {
+                System.out.println(block);
+            }
         } catch (SQLException e) {
             System.out.println("Database error: " + e.getMessage());
         }
