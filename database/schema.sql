@@ -8,7 +8,8 @@ CREATE TABLE courses (
                          code VARCHAR(10) NOT NULL UNIQUE,
                          title VARCHAR(100),
                          programme VARCHAR(5) NOT NULL,
-                         level INT NOT NULL
+                         level INT NOT NULL,
+                         credits INT
 );
 
 -- One row per class meeting. group_label is NULL when the whole class attends together.
