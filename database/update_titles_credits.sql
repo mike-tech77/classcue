@@ -1,6 +1,5 @@
 USE classcue;
 
-ALTER TABLE courses ADD COLUMN credits INT;
 
 UPDATE courses SET title = 'General Psychology',                    credits = 1 WHERE code = 'CE 251';
 UPDATE courses SET title = 'Differential Equations',                credits = 3 WHERE code = 'CE 265';
