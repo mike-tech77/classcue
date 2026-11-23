@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ClassCue</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="logo">Class<span>Cue</span></div>
+    <p>Your own timetable, picked out of the school's general one.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2><span class="step">1</span> Your registration</h2>
+      <p class="hint">Tick your courses and choose your group where there is one.</p>
+      <div id="courses" class="courses">Loading courses...</div>
+      <button id="build">Build my timetable</button>
+      <p id="message"></p>
+    </section>
+
+    <section class="card" id="result" hidden>
+      <h2><span class="step">2</span> Your timetable</h2>
+      <div id="summary" class="chips"></div>
+      <ul id="clashes"></ul>
+      <div id="week"></div>
+    </section>
+
+    <section class="card" id="prefs" hidden>
+      <h2><span class="step">3</span> Your study plan</h2>
+      <p class="hint">Tell ClassCue how you like to study. It fills the free gaps between your classes.</p>
+
+      <div class="form">
+        <label>Study hours per week
+          <input type="number" id="hours" value="8" min="1" max="30">
+        </label>
+        <label>Best time of day
+          <select id="when">
+            <option value="6-12">Morning (6:00 - 12:00)</option>
+            <option value="12-17">Afternoon (12:00 - 17:00)</option>
+            <option value="17-22" selected>Evening (17:00 - 22:00)</option>
+          </select>
+        </label>
+      </div>
+
+      <p class="label">Days to keep free</p>
+      <div class="pills" id="freeDays">
+        <label class="pill"><input type="checkbox" value="Monday"> Mon</label>
+        <label class="pill"><input type="checkbox" value="Tuesday"> Tue</label>
+        <label class="pill"><input type="checkbox" value="Wednesday"> Wed</label>
+        <label class="pill"><input type="checkbox" value="Thursday"> Thu</label>
+        <label class="pill"><input type="checkbox" value="Friday"> Fri</label>
+      </div>
+
+      <p class="label">Hardest courses (study time goes to these; tick none to include all)</p>
+      <div class="pills" id="focus"></div>
+
+      <button id="plan">Build my study plan</button>
+      <p id="planMessage"></p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

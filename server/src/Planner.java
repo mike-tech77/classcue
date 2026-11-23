@@ -8,6 +8,26 @@ import java.util.Set;
 
 public class Planner {
 
+    // One study session, e.g. Monday 18:00-19:00 for CE 273
+    public static class StudyBlock {
+        public final String day;
+        public final String start;    // "18:00"
+        public final String end;      // "19:00"
+        public final String course;
+
+        public StudyBlock(String day, String start, String end, String course) {
+            this.day = day;
+            this.start = start;
+            this.end = end;
+            this.course = course;
+        }
+
+        @Override
+        public String toString() {
+            return day + " " + start + "-" + end + "  Study " + course;
+        }
+    }
+
     static int toMin(String t) {          // "10:30:00" -> 630 (minutes since midnight)
         return Integer.parseInt(t.substring(0, 2)) * 60 + Integer.parseInt(t.substring(3, 5));
     }
@@ -40,8 +60,9 @@ public class Planner {
         }
     }
 
-    public static List<String> plan(Map<String, List<TimetableSlot>> week, int weeklyHours,
-                                    int from, int to, Set<String> freeDays, List<String> courses) {
+    // The planner itself: returns the study blocks as objects
+    public static List<StudyBlock> planBlocks(Map<String, List<TimetableSlot>> week, int weeklyHours,
+                                              int from, int to, Set<String> freeDays, List<String> courses) {
         Map<String, Deque<int[]>> options = new LinkedHashMap<>();
         for (String day : week.keySet()) {
             if (freeDays.contains(day)) {
@@ -50,7 +71,7 @@ public class Planner {
             options.put(day, new ArrayDeque<>(freeHours(week.get(day), from, to)));
         }
 
-        List<String> plan = new ArrayList<>();
+        List<StudyBlock> plan = new ArrayList<>();
         boolean added = true;
         while (plan.size() < weeklyHours && added) {
             added = false;
@@ -61,10 +82,20 @@ public class Planner {
                 }
                 int[] h = queue.poll();
                 String course = courses.get(plan.size() % courses.size());
-                plan.add(day + " " + fmt(h[0]) + "-" + fmt(h[1]) + "  Study " + course);
+                plan.add(new StudyBlock(day, fmt(h[0]), fmt(h[1]), course));
                 added = true;
             }
         }
         return plan;
+    }
+
+    // Same plan as plain text lines (used by Main)
+    public static List<String> plan(Map<String, List<TimetableSlot>> week, int weeklyHours,
+                                    int from, int to, Set<String> freeDays, List<String> courses) {
+        List<String> lines = new ArrayList<>();
+        for (StudyBlock b : planBlocks(week, weeklyHours, from, to, freeDays, courses)) {
+            lines.add(b.toString());
+        }
+        return lines;
     }
 }
