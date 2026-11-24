@@ -9,9 +9,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +29,9 @@ public class Server {
         server.createContext("/api/courses", Server::courses);
         server.createContext("/api/timetable", Server::timetable);
         server.createContext("/api/plan", Server::plan);
+        server.createContext("/api/profile", Server::profile);
+        server.createContext("/api/registration", Server::registration);
+        server.createContext("/api/preferences", Server::preferences);
         server.createContext("/", Server::page);          // everything else: the web page files
         server.start();
         System.out.println("ClassCue running. Open http://localhost:8080");
@@ -68,27 +71,56 @@ public class Server {
         }
     }
 
-    // GET /api/courses  ->  [{"code":..., "title":..., "credits":..., "groups":["A","B"]}, ...]
+    // GET /api/courses?programme=CE&level=200   (both filters are optional)
+    // -> [{"code":..., "title":..., "credits":..., "programme":"CE", "level":200, "groups":["A","B"]}, ...]
     static void courses(HttpExchange ex) throws IOException {
-        String sql = "SELECT c.code, c.title, c.credits, "
+        String query = ex.getRequestURI().getRawQuery();
+        String programme = getParam(query, "programme");
+        int level = intParam(query, "level", 0);
+
+        StringBuilder sql = new StringBuilder(
+                "SELECT c.code, c.title, c.credits, c.programme, c.level, "
                 + "GROUP_CONCAT(DISTINCT s.group_label ORDER BY s.group_label) AS grp "
-                + "FROM courses c LEFT JOIN timetable_slots s ON s.course_id = c.id "
-                + "GROUP BY c.id ORDER BY c.code";
+                + "FROM courses c LEFT JOIN timetable_slots s ON s.course_id = c.id ");
+        List<String> conditions = new ArrayList<>();
+        if (programme != null && !programme.isEmpty()) {
+            conditions.add("c.programme = ?");
+        }
+        if (level != 0) {
+            conditions.add("c.level = ?");
+        }
+        if (!conditions.isEmpty()) {
+            sql.append("WHERE ").append(String.join(" AND ", conditions)).append(" ");
+        }
+        sql.append("GROUP BY c.id ORDER BY c.code");
+
         try (Connection conn = Db.connect();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            List<String> items = new ArrayList<>();
-            while (rs.next()) {
-                String grp = rs.getString("grp");
-                String groups = (grp == null) ? "" : "\"" + grp.replace(",", "\",\"") + "\"";
-                items.add("{\"code\":" + q(rs.getString("code"))
-                        + ",\"title\":" + q(rs.getString("title"))
-                        + ",\"credits\":" + rs.getInt("credits")
-                        + ",\"groups\":[" + groups + "]}");
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            int next = 1;
+            if (programme != null && !programme.isEmpty()) {
+                stmt.setString(next++, programme);
             }
-            send(ex, 200, "[" + String.join(",", items) + "]");
+            if (level != 0) {
+                stmt.setInt(next++, level);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<String> items = new ArrayList<>();
+                while (rs.next()) {
+                    String grp = rs.getString("grp");
+                    String groups = (grp == null) ? "" : "\"" + grp.replace(",", "\",\"") + "\"";
+                    int credits = rs.getInt("credits");
+                    boolean noCredits = rs.wasNull();
+                    items.add("{\"code\":" + q(rs.getString("code"))
+                            + ",\"title\":" + q(rs.getString("title"))
+                            + ",\"credits\":" + (noCredits ? "null" : String.valueOf(credits))
+                            + ",\"programme\":" + q(rs.getString("programme"))
+                            + ",\"level\":" + rs.getInt("level")
+                            + ",\"groups\":[" + groups + "]}");
+                }
+                send(ex, 200, "[" + String.join(",", items) + "]");
+            }
         } catch (SQLException e) {
-            send(ex, 500, "{\"error\":" + q(e.getMessage()) + "}");
+            dbError(ex, e);
         }
     }
 
@@ -119,7 +151,7 @@ public class Server {
             send(ex, 200, "{\"slots\":[" + String.join(",", slotJson) + "],\"clashes\":["
                     + String.join(",", clashJson) + "]}");
         } catch (SQLException e) {
-            send(ex, 500, "{\"error\":" + q(e.getMessage()) + "}");
+            dbError(ex, e);
         }
     }
 
@@ -155,8 +187,148 @@ public class Server {
             }
             send(ex, 200, "{\"blocks\":[" + String.join(",", blockJson) + "]}");
         } catch (SQLException e) {
-            send(ex, 500, "{\"error\":" + q(e.getMessage()) + "}");
+            dbError(ex, e);
         }
+    }
+
+    // POST /api/profile   body: username=..&programme=CE&level=200
+    // Finds or creates the student and returns their saved courses and study settings.
+    static void profile(HttpExchange ex) throws IOException {
+        if (!requirePost(ex)) return;
+        String body = readBody(ex);
+        String username = trimmed(getParam(body, "username"));
+        String programme = getParam(body, "programme");
+        int level = intParam(body, "level", 0);
+
+        if (!Students.validUsername(username)) {
+            send(ex, 400, error("Username must be 3 to 30 characters: letters, numbers, dot, dash or underscore."));
+            return;
+        }
+        if (!Students.validProgramme(programme)) {
+            send(ex, 400, error("Choose a department."));
+            return;
+        }
+        if (!Students.validLevel(level)) {
+            send(ex, 400, error("Choose a level."));
+            return;
+        }
+
+        try {
+            Students.Profile p = Students.findOrCreate(username, programme, level);
+            String reg = Students.loadRegistration(p.id);
+            Students.Prefs prefs = Students.loadPreferences(p.id);
+            send(ex, 200, "{\"student\":{\"username\":" + q(p.username)
+                    + ",\"programme\":" + q(p.programme) + ",\"level\":" + p.level + "}"
+                    + ",\"isNew\":" + p.isNew
+                    + ",\"registration\":" + q(reg)
+                    + ",\"preferences\":" + prefsJson(prefs) + "}");
+        } catch (SQLException e) {
+            dbError(ex, e);
+        }
+    }
+
+    // POST /api/registration   body: username=..&reg=CE 251:,CE 271:A
+    // Saves the student's chosen courses and groups (replacing the old list).
+    static void registration(HttpExchange ex) throws IOException {
+        if (!requirePost(ex)) return;
+        String body = readBody(ex);
+        String username = trimmed(getParam(body, "username"));
+        Map<String, String> registered = parseReg(getParam(body, "reg"));
+
+        if (registered.size() > 40) {
+            send(ex, 400, error("Too many courses."));
+            return;
+        }
+        for (Map.Entry<String, String> e : registered.entrySet()) {
+            if (!Students.validCourseCode(e.getKey()) || !Students.validGroup(e.getValue())) {
+                send(ex, 400, error("Bad course or group: " + e.getKey()));
+                return;
+            }
+        }
+
+        try {
+            int id = Students.validUsername(username) ? Students.findId(username) : -1;
+            if (id < 0) {
+                send(ex, 404, error("Unknown student. Start again from the welcome page."));
+                return;
+            }
+            Students.saveRegistration(id, registered);
+            send(ex, 200, "{\"saved\":" + registered.size() + "}");
+        } catch (SQLException e) {
+            dbError(ex, e);
+        }
+    }
+
+    // POST /api/preferences   body: username=..&hours=8&when=17-22&free=Friday&focus=CE 273,CE 277
+    static void preferences(HttpExchange ex) throws IOException {
+        if (!requirePost(ex)) return;
+        String body = readBody(ex);
+        String username = trimmed(getParam(body, "username"));
+
+        Students.Prefs p = new Students.Prefs();
+        p.hours = intParam(body, "hours", 0);
+        p.when = getParam(body, "when");
+        List<String> free = splitList(getParam(body, "free"));
+        List<String> focus = splitList(getParam(body, "focus"));
+        p.free = String.join(",", free);
+        p.focus = String.join(",", focus);
+
+        if (p.hours < 1 || p.hours > 40 || !Students.validWindow(p.when)
+                || !Students.validDays(free) || focus.size() > 20) {
+            send(ex, 400, error("Those study settings are not valid."));
+            return;
+        }
+        for (String code : focus) {
+            if (!Students.validCourseCode(code)) {
+                send(ex, 400, error("Bad course: " + code));
+                return;
+            }
+        }
+
+        try {
+            int id = Students.validUsername(username) ? Students.findId(username) : -1;
+            if (id < 0) {
+                send(ex, 404, error("Unknown student. Start again from the welcome page."));
+                return;
+            }
+            Students.savePreferences(id, p);
+            send(ex, 200, "{\"saved\":true}");
+        } catch (SQLException e) {
+            dbError(ex, e);
+        }
+    }
+
+    static String prefsJson(Students.Prefs p) {
+        if (p == null) return "null";
+        return "{\"hours\":" + p.hours + ",\"when\":" + q(p.when)
+                + ",\"free\":" + q(p.free) + ",\"focus\":" + q(p.focus) + "}";
+    }
+
+    static boolean requirePost(HttpExchange ex) throws IOException {
+        if ("POST".equals(ex.getRequestMethod())) {
+            return true;
+        }
+        send(ex, 405, error("Use POST."));
+        return false;
+    }
+
+    // reads the form data the browser sent (at most 20,000 bytes)
+    static String readBody(HttpExchange ex) throws IOException {
+        return new String(ex.getRequestBody().readNBytes(20_000), StandardCharsets.UTF_8);
+    }
+
+    static String trimmed(String s) {
+        return s == null ? null : s.trim();
+    }
+
+    static String error(String message) {
+        return "{\"error\":" + q(message) + "}";
+    }
+
+    // The details go to the Run window; the browser only gets a short message
+    static void dbError(HttpExchange ex, SQLException e) throws IOException {
+        e.printStackTrace();
+        send(ex, 500, error("Database error. Check the server's Run window for details."));
     }
 
     // "CE 251:,CE 271:A" -> {"CE 251": "", "CE 271": "A"}

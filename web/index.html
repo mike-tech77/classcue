@@ -6,61 +6,189 @@
   <title>ClassCue</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <header class="hero">
-    <div class="logo">Class<span>Cue</span></div>
-    <p>Your own timetable, picked out of the school's general one.</p>
-  </header>
+<body data-dept="CE">
 
-  <main>
-    <section class="card">
-      <h2><span class="step">1</span> Your registration</h2>
-      <p class="hint">Tick your courses and choose your group where there is one.</p>
-      <div id="courses" class="courses">Loading courses...</div>
-      <button id="build">Build my timetable</button>
-      <p id="message"></p>
-    </section>
+  <!-- ================= WELCOME ================= -->
+  <section id="welcome" class="welcome">
+    <div class="art-panel">
+      <div class="brand">Class<span>Cue</span></div>
+      <h1>Your timetable, your way.</h1>
+      <p class="tagline">Pick your department and level. ClassCue shows only your classes and fits study time around them.</p>
 
-    <section class="card" id="result" hidden>
-      <h2><span class="step">2</span> Your timetable</h2>
-      <div id="summary" class="chips"></div>
-      <ul id="clashes"></ul>
-      <div id="week"></div>
-    </section>
+      <!-- artwork for Computer Science and Engineering -->
+      <div class="art art-ce" aria-hidden="true">
+        <svg viewBox="0 0 420 300">
+          <g fill="none" stroke="#7ff0c4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M160 125 H100 V70 H40"/>
+            <path d="M160 150 H30"/>
+            <path d="M160 175 H90 V230 H50"/>
+            <path d="M200 100 V40 H260 V20"/>
+            <path d="M230 100 V60 H330 V30"/>
+            <path d="M260 125 H320 V90 H390"/>
+            <path d="M260 150 H395"/>
+            <path d="M260 175 H330 V225 H385"/>
+            <path d="M215 200 V260 H150"/>
+            <path d="M245 200 V250 H300 V280"/>
+          </g>
+          <g fill="#7ff0c4">
+            <circle cx="40" cy="70" r="6"/><circle cx="30" cy="150" r="6"/><circle cx="50" cy="230" r="6"/>
+            <circle cx="260" cy="20" r="6"/><circle cx="330" cy="30" r="6"/><circle cx="390" cy="90" r="6"/>
+            <circle cx="395" cy="150" r="6"/><circle cx="385" cy="225" r="6"/><circle cx="150" cy="260" r="6"/>
+            <circle cx="300" cy="280" r="6"/>
+          </g>
+          <rect x="160" y="100" width="100" height="100" rx="14" fill="rgba(255,255,255,0.14)" stroke="#fff" stroke-width="3"/>
+          <rect x="185" y="125" width="50" height="50" rx="8" fill="rgba(255,255,255,0.22)" stroke="#fff" stroke-width="2"/>
+          <text x="210" y="158" text-anchor="middle" font-size="24" font-weight="700" fill="#fff" font-family="monospace">&lt;/&gt;</text>
+          <g class="float" fill="#fff" fill-opacity="0.35" font-family="monospace" font-size="16">
+            <text x="70" y="40">1011</text><text x="300" y="75">0110</text>
+            <text x="95" y="205">0101</text><text x="330" y="190">1100</text>
+          </g>
+        </svg>
+      </div>
 
-    <section class="card" id="prefs" hidden>
-      <h2><span class="step">3</span> Your study plan</h2>
-      <p class="hint">Tell ClassCue how you like to study. It fills the free gaps between your classes.</p>
+      <!-- artwork for Data Science -->
+      <div class="art art-ds" aria-hidden="true">
+        <svg viewBox="0 0 420 300">
+          <path d="M60 250 H385 M60 250 V50" stroke="#fff" stroke-opacity="0.6" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <g fill="#fff" fill-opacity="0.28">
+            <rect x="85" y="190" width="32" height="60" rx="4"/>
+            <rect x="135" y="155" width="32" height="95" rx="4"/>
+            <rect x="185" y="170" width="32" height="80" rx="4"/>
+            <rect x="235" y="115" width="32" height="135" rx="4"/>
+            <rect x="285" y="80" width="32" height="170" rx="4"/>
+          </g>
+          <rect x="335" y="100" width="32" height="150" rx="4" fill="#ffd166" fill-opacity="0.9"/>
+          <polyline points="101,190 151,155 201,170 251,115 301,80 351,100" fill="none" stroke="#ffd166" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <g fill="#fff" stroke="#ffd166" stroke-width="3">
+            <circle cx="101" cy="190" r="5"/><circle cx="151" cy="155" r="5"/><circle cx="201" cy="170" r="5"/>
+            <circle cx="251" cy="115" r="5"/><circle cx="301" cy="80" r="5"/><circle cx="351" cy="100" r="5"/>
+          </g>
+          <g class="float">
+            <g stroke="#fff" stroke-opacity="0.5" stroke-width="2">
+              <line x1="80" y1="45" x2="140" y2="30"/><line x1="140" y1="30" x2="190" y2="70"/>
+              <line x1="190" y1="70" x2="130" y2="75"/><line x1="130" y1="75" x2="80" y2="45"/>
+            </g>
+            <g fill="#fff" fill-opacity="0.85">
+              <circle cx="80" cy="45" r="6"/><circle cx="140" cy="30" r="6"/>
+              <circle cx="190" cy="70" r="6"/><circle cx="130" cy="75" r="6"/>
+            </g>
+            <g fill="#ffd166" fill-opacity="0.85">
+              <circle cx="300" cy="35" r="4"/><circle cx="325" cy="55" r="4"/><circle cx="350" cy="30" r="4"/>
+              <circle cx="375" cy="60" r="4"/><circle cx="395" cy="40" r="4"/>
+            </g>
+          </g>
+        </svg>
+      </div>
 
-      <div class="form">
-        <label>Study hours per week
-          <input type="number" id="hours" value="8" min="1" max="30">
+      <ul class="perks">
+        <li>Only your classes, by department and level</li>
+        <li>Clashes flagged for you</li>
+        <li>Study blocks in your free gaps</li>
+      </ul>
+    </div>
+
+    <div class="form-panel">
+      <form id="profileForm" class="login-card" autocomplete="off">
+        <h2>Get started</h2>
+        <p class="hint">Tell ClassCue who you are and what you study.</p>
+
+        <label>Username
+          <input id="username" type="text" maxlength="30" placeholder="e.g. mike" required>
         </label>
-        <label>Best time of day
-          <select id="when">
-            <option value="6-12">Morning (6:00 - 12:00)</option>
-            <option value="12-17">Afternoon (12:00 - 17:00)</option>
-            <option value="17-22" selected>Evening (17:00 - 22:00)</option>
+        <label>Department
+          <select id="department">
+            <option value="CE">Computer Science and Engineering</option>
+            <option value="DS">Data Science</option>
           </select>
         </label>
+        <label>Level
+          <select id="level">
+            <option value="100">Level 100</option>
+            <option value="200" selected>Level 200</option>
+            <option value="300">Level 300</option>
+            <option value="400">Level 400</option>
+          </select>
+        </label>
+
+        <button type="submit" id="continue">Continue</button>
+        <p id="profileMessage" class="error"></p>
+
+        <p class="note">No password yet. Your courses and study settings are saved under your username.</p>
+        <button type="button" class="ghost" disabled>School Google sign-in: coming soon</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ================= APP ================= -->
+  <div id="app" hidden>
+    <header class="topbar">
+      <div class="brand small">Class<span>Cue</span></div>
+      <div class="who">
+        <span id="greeting"></span>
+        <span id="whoChip" class="who-chip"></span>
+        <button type="button" id="switch" class="ghost-light">Switch student</button>
       </div>
+    </header>
 
-      <p class="label">Days to keep free</p>
-      <div class="pills" id="freeDays">
-        <label class="pill"><input type="checkbox" value="Monday"> Mon</label>
-        <label class="pill"><input type="checkbox" value="Tuesday"> Tue</label>
-        <label class="pill"><input type="checkbox" value="Wednesday"> Wed</label>
-        <label class="pill"><input type="checkbox" value="Thursday"> Thu</label>
-        <label class="pill"><input type="checkbox" value="Friday"> Fri</label>
-      </div>
+    <main>
+      <section class="card">
+        <h2><span class="step">1</span> My courses</h2>
+        <p class="hint">These are the courses for your department and level. Untick any you are not taking and choose your group where there is one.</p>
+        <div id="courses" class="courses">Loading courses...</div>
 
-      <p class="label">Hardest courses (study time goes to these; tick none to include all)</p>
-      <div class="pills" id="focus"></div>
+        <div id="carryBox" class="carry" hidden>
+          <label for="carrySelect">Carrying a course from another level?</label>
+          <div class="carry-row">
+            <select id="carrySelect"></select>
+            <button type="button" id="carryAdd" class="small">Add</button>
+          </div>
+        </div>
 
-      <button id="plan">Build my study plan</button>
-      <p id="planMessage"></p>
-    </section>
-  </main>
+        <button id="build">Build my timetable</button>
+        <p id="message" class="error"></p>
+      </section>
+
+      <section class="card" id="result" hidden>
+        <h2><span class="step">2</span> My timetable</h2>
+        <div id="summary" class="chips"></div>
+        <ul id="clashes"></ul>
+        <div id="week"></div>
+      </section>
+
+      <section class="card" id="prefs" hidden>
+        <h2><span class="step">3</span> My study plan</h2>
+        <p class="hint">Tell ClassCue how you like to study. It fills the free gaps between your classes.</p>
+
+        <div class="form">
+          <label>Study hours per week
+            <input type="number" id="hours" value="8" min="1" max="30">
+          </label>
+          <label>Best time of day
+            <select id="when">
+              <option value="6-12">Morning (6:00 - 12:00)</option>
+              <option value="12-17">Afternoon (12:00 - 17:00)</option>
+              <option value="17-22" selected>Evening (17:00 - 22:00)</option>
+            </select>
+          </label>
+        </div>
+
+        <p class="label">Days to keep free</p>
+        <div class="pills" id="freeDays">
+          <label class="pill"><input type="checkbox" value="Monday"> Mon</label>
+          <label class="pill"><input type="checkbox" value="Tuesday"> Tue</label>
+          <label class="pill"><input type="checkbox" value="Wednesday"> Wed</label>
+          <label class="pill"><input type="checkbox" value="Thursday"> Thu</label>
+          <label class="pill"><input type="checkbox" value="Friday"> Fri</label>
+        </div>
+
+        <p class="label">Hardest courses (study time goes to these; tick none to include all)</p>
+        <div class="pills" id="focus"></div>
+
+        <button id="plan">Build my study plan</button>
+        <p id="planMessage" class="error"></p>
+      </section>
+    </main>
+  </div>
 
   <script src="app.js"></script>
 </body>

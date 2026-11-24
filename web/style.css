@@ -7,9 +7,20 @@
   --ruby: #c0143c;
   --bg: #f5f3fb;
   --line: #e6e2f2;
+
+  /* colours that change with the department */
+  --from: #1c2a7a;
+  --to: #0f8a63;
+  --accent: #0f8a63;
+}
+body[data-dept="DS"] {
+  --from: #4b2a8f;
+  --to: #b03a86;
+  --accent: #7b3fb8;
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 body {
   margin: 0;
@@ -18,18 +29,129 @@ body {
   color: var(--ink);
 }
 
-/* ---------- header ---------- */
-.hero {
-  background: linear-gradient(135deg, var(--sapphire), var(--amethyst));
-  color: white;
-  text-align: center;
-  padding: 34px 16px 56px;
-}
-.logo { font-size: 38px; font-weight: 800; letter-spacing: -1px; }
-.logo span { color: #7ff0c4; }
-.hero p { margin: 6px 0 0; opacity: 0.9; }
+.brand { font-size: 38px; font-weight: 800; letter-spacing: -1px; }
+.brand span { color: #7ff0c4; }
+.brand.small { font-size: 26px; }
 
-main { max-width: 1100px; margin: -32px auto 0; padding: 0 16px 32px; }
+/* ---------- welcome page ---------- */
+.welcome {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  min-height: 100vh;
+}
+.art-panel {
+  background: linear-gradient(135deg, var(--from), var(--to));
+  color: white;
+  padding: 40px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.4s;
+}
+.art-panel h1 { font-size: 36px; line-height: 1.15; margin: 14px 0 4px; }
+.tagline { margin: 0 0 6px; opacity: 0.92; max-width: 460px; line-height: 1.5; }
+
+.art { display: none; max-width: 440px; margin: 10px 0; }
+.art svg { width: 100%; height: auto; display: block; }
+body[data-dept="CE"] .art-ce { display: block; }
+body[data-dept="DS"] .art-ds { display: block; }
+
+.perks { list-style: none; padding: 0; margin: 6px 0 0; }
+.perks li { padding: 4px 0 4px 26px; position: relative; opacity: 0.95; }
+.perks li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #7ff0c4;
+}
+
+.float { animation: floaty 5s ease-in-out infinite; }
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .float { animation: none; }
+}
+
+.form-panel { display: flex; align-items: center; justify-content: center; padding: 28px 18px; }
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 10px 30px rgba(60, 40, 120, 0.14);
+}
+.login-card h2 { margin: 0 0 4px; font-size: 26px; }
+.login-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 14px;
+}
+.login-card input, .login-card select {
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 15px;
+  background: white;
+  color: var(--ink);
+}
+.login-card input:focus, .login-card select:focus {
+  outline: 2px solid var(--accent);
+  border-color: transparent;
+}
+.login-card button[type="submit"] { width: 100%; margin-top: 20px; }
+.note { color: var(--muted); font-size: 13px; margin: 14px 0 10px; }
+.ghost {
+  width: 100%;
+  background: #f1eff8;
+  color: var(--muted);
+  box-shadow: none;
+  margin: 0;
+  cursor: not-allowed;
+  font-size: 14px;
+  font-weight: 500;
+}
+.error { color: var(--ruby); margin: 10px 0 0; }
+
+/* ---------- top bar of the app ---------- */
+.topbar {
+  background: linear-gradient(135deg, var(--from), var(--to));
+  color: white;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.who { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 14px; }
+.who-chip {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-weight: 600;
+}
+.ghost-light {
+  margin: 0;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: none;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 32px; }
 
 /* ---------- cards ---------- */
 .card {
@@ -47,7 +169,7 @@ main { max-width: 1100px; margin: -32px auto 0; padding: 0 16px 32px; }
   gap: 10px;
 }
 .step {
-  background: var(--emerald);
+  background: var(--accent);
   color: white;
   width: 28px;
   height: 28px;
@@ -86,9 +208,21 @@ main { max-width: 1100px; margin: -32px auto 0; padding: 0 16px 32px; }
   color: var(--ink);
 }
 
+.carry { margin-top: 16px; font-size: 14px; font-weight: 600; }
+.carry-row { display: flex; gap: 8px; margin-top: 6px; }
+.carry-row select {
+  flex: 1;
+  max-width: 420px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+}
+
 button {
   margin-top: 16px;
-  background: linear-gradient(135deg, var(--emerald), #12a578);
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 75%, white));
   color: white;
   border: none;
   border-radius: 999px;
@@ -96,11 +230,10 @@ button {
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(15, 138, 99, 0.35);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 button:hover { filter: brightness(0.95); }
-
-#message { color: var(--ruby); margin: 10px 0 0; }
+button.small { margin: 0; padding: 8px 18px; font-size: 14px; box-shadow: none; }
 
 /* ---------- results ---------- */
 .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
@@ -206,10 +339,14 @@ button:hover { filter: brightness(0.95); }
 .slot.study .name { color: var(--amethyst); }
 .slot.study .tag { background: var(--amethyst); }
 
-#planMessage { color: var(--ruby); margin: 10px 0 0; }
-
+/* ---------- phones ---------- */
 @media (max-width: 800px) {
-  .form { grid-template-columns: 1fr; }
+  .welcome { grid-template-columns: 1fr; min-height: 0; }
+  .art-panel { padding: 24px 20px; }
+  .art-panel h1 { font-size: 27px; }
+  .art { max-width: 280px; }
+  .perks { display: none; }
   #week { grid-template-columns: 1fr; }
   .courses { grid-template-columns: 1fr; }
+  .form { grid-template-columns: 1fr; }
 }
